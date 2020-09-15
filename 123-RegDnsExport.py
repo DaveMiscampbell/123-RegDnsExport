@@ -3,9 +3,12 @@ import time
 import sys
 import dns.resolver
 
+
 def exportZone(domain, browser):
     zone = []
-    browser.visit("https://www.123-reg.co.uk/secure/cpanel/manage-dns?domain=" + domain)
+    browser.visit(
+        "https://www.123-reg.co.uk/secure/cpanel/manage-dns?domain=" + domain)
+    browser.find_by_css('.UPM__PrivacyModal form button').last.click()
     browser.click_link_by_id('advanced-tab')
     a = 0
     while browser.is_element_present_by_id('dns_entry_0') == False:
@@ -19,15 +22,18 @@ def exportZone(domain, browser):
     for row in table:
         hostdict = {}
         cells = row.find_by_css('td')
-        if cells[4].text.endswith('...'):  # sometimes long things get truncated by their UI
-            target = cells[4].html.split('title="')[1].split('"')[0]  # fortunately it's here in a title field
+        # sometimes long things get truncated by their UI
+        if cells[4].text.endswith('...'):
+            target = cells[4].html.split('title="')[1].split(
+                '"')[0]  # fortunately it's here in a title field
         else:
             target = cells[4].text
         hostname = cells[0].text
         hostdict['hostname'] = hostname
         if cells[1].text == 'TXT/SPF':  # come on 123-reg, this isn't a real record type
             hostdict['type'] = 'TXT'
-            hostdict['dest'] = '"{}"'.format(target)  # and TXT records need quotes
+            hostdict['dest'] = '"{}"'.format(
+                target)  # and TXT records need quotes
         else:
             hostdict['type'] = cells[1].text
             hostdict['dest'] = target
@@ -36,11 +42,13 @@ def exportZone(domain, browser):
         zone.append(hostdict)
     return zone
 
+
 def login(browser):
     browser.visit("https://www.123-reg.co.uk/secure")
-    browser.fill('username', inputUsername)
+    browser.fill('identifier', inputUsername)
     browser.fill('password', inputPassword)
-    browser.find_by_id('login').first.click()
+    time.sleep(2)
+    browser.find_by_css('button').last.click()
     while browser.is_element_visible_by_xpath('//*[@id="body"]/div/div[5]/div[3]/div/table/tbody/tr/td[3]/input') == False:
         time.sleep(1)
     return browser
@@ -67,8 +75,10 @@ def tabulate(rows_of_columns):
     try:
         column_widths = [max(map(len, column)) for column in columns_of_rows]
     except TypeError:  # Sometimes column contains an int
-        column_widths = [max(map(len, str(column))) for column in columns_of_rows]
-    column_specs = ('{{:{w}}}'.format(w=max(width, 1)) for width in column_widths)
+        column_widths = [max(map(len, str(column)))
+                         for column in columns_of_rows]
+    column_specs = ('{{:{w}}}'.format(w=max(width, 1))
+                    for width in column_widths)
     format_spec = ' '.join(column_specs)
     table = ''
     for row in rows_of_columns:
@@ -82,7 +92,8 @@ def formatZone(domain, zone, defTTL):
     if defTTL:
         table.append(['$TTL {}'.format(defTTL)])
     for record in zone:
-        table.append([record['hostname'], record['ttl'], 'IN', record['type'], record['priority'], record['dest']])
+        table.append([record['hostname'], record['ttl'], 'IN',
+                      record['type'], record['priority'], record['dest']])
     formattedTable = tabulate(table)
     return formattedTable
 
@@ -123,13 +134,15 @@ def defaultTTL(zone, NSrecord, domain):
 
 def processDomain(domain, browser):
     NSrecord = str(getNameServerRecord(domain))
-    if not NSrecord.endswith('123-reg.co.uk.') or NSrecord.endswith('hosteurope.com.'):  # Sometimes they're only the registrar and DNS is elsewhere
+    # Sometimes they're only the registrar and DNS is elsewhere
+    if not NSrecord.endswith('123-reg.co.uk.') or NSrecord.endswith('hosteurope.com.'):
         print("123-Reg does not appear to be the DNS provider for {}.".format(domain))
         return
     zone = exportZone(domain, browser)
     if zone == "lookupFailed":
         return
-    defTTL = defaultTTL(zone, NSrecord, domain)  # Try to figure out the domain's default TTL
+    # Try to figure out the domain's default TTL
+    defTTL = defaultTTL(zone, NSrecord, domain)
     zonef = formatZone(domain, zone, defTTL)
     print(zonef)
     writeZone(domain, zonef)
