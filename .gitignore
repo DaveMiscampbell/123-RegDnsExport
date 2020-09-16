@@ -2,3 +2,5 @@ geckodriver.log
 quote.sh
 strings.txt
 *.zone
+node_modules/
+*.csv

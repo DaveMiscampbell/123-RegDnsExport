@@ -1,0 +1,23 @@
+{
+  "name": "123-regdnsexport",
+  "version": "1.0.0",
+  "description": "Export DNS zones from 123-reg.co.uk to BIND compliant zone files for use with real DNS providers",
+  "main": "bin/index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/DaveMiscampbell/123-RegDnsExport.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/DaveMiscampbell/123-RegDnsExport/issues"
+  },
+  "homepage": "https://github.com/DaveMiscampbell/123-RegDnsExport#readme",
+  "dependencies": {
+    "csv-writer": "^1.6.0",
+    "dns-zonefile": "^0.2.6"
+  }
+}

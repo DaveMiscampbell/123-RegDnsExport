@@ -9,10 +9,6 @@ def exportZone(domain, browser):
     zone = []
     browser.visit(
         "https://www.123-reg.co.uk/secure/cpanel/manage-dns?domain=" + domain)
-    try:
-        browser.find_by_css('.UPM__PrivacyModal form button').last.click()
-    except splinter.exceptions.ElementDoesNotExist:
-        print("Already accepted Cookies")
     browser.click_link_by_id('advanced-tab')
     a = 0
     while browser.is_element_present_by_id('dns_entry_0') == False:
@@ -53,7 +49,7 @@ def login(browser):
     browser.fill('password', inputPassword)
     time.sleep(2)
     browser.find_by_css('button').last.click()
-    while browser.is_element_visible_by_xpath('//*[@id="body"]/div/div[5]/div[3]/div/table/tbody/tr/td[3]/input') == False:
+    while browser.find_by_tag('body').first.has_class('ReactModal__Body--open') == False:
         time.sleep(1)
     return browser
 
@@ -162,6 +158,10 @@ if __name__ == "__main__":
             domain = sys.argv[1]
             processDomain(domain, browser)
         if sys.argv[1] == 'all':
+            try:
+                browser.find_by_css('.UPM__PrivacyModal form button').last.click()
+            except splinter.exceptions.ElementDoesNotExist:
+                print("Already accepted Cookies")
             domlist = enumDomains(browser)
             for domain in domlist:
                 processDomain(domain, browser)
