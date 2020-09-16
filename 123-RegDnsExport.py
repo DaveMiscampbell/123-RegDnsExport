@@ -2,13 +2,17 @@ from splinter import Browser
 import time
 import sys
 import dns.resolver
+import splinter
 
 
 def exportZone(domain, browser):
     zone = []
     browser.visit(
         "https://www.123-reg.co.uk/secure/cpanel/manage-dns?domain=" + domain)
-    browser.find_by_css('.UPM__PrivacyModal form button').last.click()
+    try:
+        browser.find_by_css('.UPM__PrivacyModal form button').last.click()
+    except splinter.exceptions.ElementDoesNotExist:
+        print("Already accepted Cookies")
     browser.click_link_by_id('advanced-tab')
     a = 0
     while browser.is_element_present_by_id('dns_entry_0') == False:
@@ -114,8 +118,9 @@ def getNameServerRecord(domain):
 
 def defaultTTL(zone, NSrecord, domain):
     res = dns.resolver.Resolver()
-    answer = res.query(NSrecord)
-    res.nameservers = [str(answer.rrset.items[0])]
+    answer = res.resolve(NSrecord)
+    print(answer.rrset.items)
+    res.nameservers = [str(list(answer.rrset.items)[0])]
     try:
         for record in zone:
             if record['ttl'] == '':
